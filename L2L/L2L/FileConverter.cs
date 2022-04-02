@@ -104,7 +104,7 @@ namespace L2L
                 return value;
             }
             string tablename = remainder.Substring(0, nextdot);
-            string newname = Normalize(tablename);
+            string newname = Helpers.Normalize(tablename);
             value = buffer.Replace(tablename, newname);
 
             // now that we are aware of the table, we store it's name to update things that dont need
@@ -113,7 +113,7 @@ namespace L2L
 
             // get the names of the fields in this table, so we can update getters and setters for
             // the data objects fields in a later pass
-            var fieldnames = L2L.Helpers.SqlTools.GetColumnsInTable(_config.ConnectionString, tablename);
+            var fieldnames = Helpers.GetColumnsInTable(_config.ConnectionString, tablename);
             foreach (string field in fieldnames) {
                 _fieldNames.Add(field);
             }
@@ -129,7 +129,7 @@ namespace L2L
             string value = buffer;
             foreach (string tablename in _tableNames) {
                 if (value.Contains(tablename)) {
-                    string targetname = Normalize(tablename);
+                    string targetname = Helpers.Normalize(tablename);
                     value = value.Replace(tablename, targetname);
                 }
             }
@@ -145,8 +145,8 @@ namespace L2L
         public string UpdateFields(string buffer) {
             string value = buffer;
             foreach(string field in _fieldNames) {
-                string find = $".{Capitalize(field)}";
-                string replace = $".{Normalize(field)}";
+                string find = $".{Helpers.Capitalize(field)}";
+                string replace = $".{Helpers.Normalize(field)}";
                 if (buffer.Contains(find)) {
                     value = value.Replace(find, replace);
                 }
@@ -154,32 +154,7 @@ namespace L2L
             return value;
         }
 
-        /// <summary>
-        /// Normalize table and field names to the format used by LinqConnect
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        private string Normalize(string value) {
-            value = Capitalize(value);
-            if (value.Contains("_")) {
-                string[] args = value.Split(Convert.ToChar("_"));
-                value = string.Empty;
-                foreach (string arg in args) {
-                    value += Capitalize(arg);
-                }
-            }
-            return value;
-        }
 
-        private static string Capitalize(string value) {
-            if (string.IsNullOrWhiteSpace(value)) {
-                throw new ArgumentException("value cannot be empty or null");
-            }
-            if (value.Length == 1) {
-                return value.ToUpper();
-            }
-            return value.Substring(0, 1).ToUpper() + value.Substring(1);
-        }
 
 
     }
