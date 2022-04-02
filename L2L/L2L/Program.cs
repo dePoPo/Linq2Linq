@@ -18,10 +18,18 @@ namespace L2L
                 return;
             }
 
+            // create backup and working copy
             string fileHandle = args[0];
             BackupService backup = new BackupService(fileHandle);
-            backup.Create();
+            string tempsourcefile = backup.Create();
 
+            // process file
+            var model = new L2L.Models.ConfigurationModel();
+            FileConverter scannerService = new FileConverter(tempsourcefile, fileHandle, model);
+            scannerService.Process();
+
+            // cleanup tempsource
+            File.Delete(tempsourcefile);
 
 
 
