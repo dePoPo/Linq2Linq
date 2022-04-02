@@ -38,7 +38,7 @@ As said at the top, this is not a ready made converter for all cases, but who kn
 
 # Example
 
-# Before
+# Before conversion
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -110,7 +110,8 @@ namespace Asterix.Framework.Data.Repository.Debiteuren
         }
 
 
-#After
+
+#After conversion
 
 
 using System.Collections.Generic;
