@@ -44,7 +44,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackupService.cs" />
-    <Compile Include="BlockBuilderService.cs" />
+    <Compile Include="FileConverter.cs" />
+    <Compile Include="Helpers\SqlTools.cs" />
+    <Compile Include="Models\ConfigurationModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StartValidationService.cs" />

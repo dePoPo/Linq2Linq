@@ -36,3 +36,150 @@ Having run that, it would still be a good idea to scan the resulting code for ot
 
 As said at the top, this is not a ready made converter for all cases, but who knows - it may give you an idea or 2
 
+# Example
+
+# Before
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Asterix.Framework.Data.LcDomain;
+using Asterix.Framework.Data.Interfaces;
+using Asterix.Framework.Data.Models.Debiteuren;
+using Asterix.Framework.Definitions;
+using Asterix.Framework.Foundation;
+
+namespace Asterix.Framework.Data.Repository.Debiteuren
+{
+    public class ContactpersoonRepository : IAsterixRepository<Contactpersoon>
+    {
+        private readonly string _database;
+
+        public ContactpersoonRepository(RuntimeParameters parms) {
+            _database = parms.Database;
+        }
+
+        public Contactpersoon Add(Contactpersoon model) {
+            var dc = new LcAsterixDataContext(_database);
+            var newCard = new Asterix_klanten_Contactpersonen();
+            newCard.Cp_klantzoekcode = model.Klantnummer;
+            newCard.Cp_achternaam = model.Achternaam;
+            newCard.Cp_voorletters = model.Voorletters;
+            newCard.Cp_voornaam = model.Voornaam;
+            newCard.Cp_email = model.Email;
+            newCard.Cp_functie = model.Functie;
+            newCard.Cp_telefoon1 = model.Telefoon;
+            newCard.Cp_telefoon2 = model.Telefoon2;
+            newCard.Cp_geslacht = model.Geslacht;
+            newCard.Cp_ishoofdcontact = model.IsHoofdcontact;
+            ObjectFactory.SetDefaultFieldValues(newCard);
+            dc.Asterix_klanten_Contactpersonen.InsertOnSubmit(newCard);
+            dc.SubmitChanges();
+            model.Id = newCard.Id;
+            return model;
+        }
+
+        public void Delete(int id) {
+            var dc = new LcAsterixDataContext(_database);
+            var del = dc.Asterix_klanten_Contactpersonen.Single(x => x.Id == id);
+            dc.Asterix_klanten_Contactpersonen.DeleteOnSubmit(del);
+            dc.SubmitChanges();
+        }
+
+        public List<Contactpersoon> FullTextSearch(string filter) {
+            filter = filter.Trim().ToLower();
+            var filterDate = Helpers.GetFilterDate(filter);
+            var dc = new LcAsterixDataContext(_database);
+            var ds = dc.Asterix_klanten_Contactpersonen.Where(x => x.Id.ToString() == filter
+                                                                   || x.Cp_klantzoekcode.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_achternaam.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_voorletters.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_voornaam.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_email.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_functie.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_telefoon1.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_telefoon2.ToLower().IndexOf(filter) != -1
+                                                                   || x.Cp_geslacht.ToLower().IndexOf(filter) != -1
+            );
+            var resultSet = new List<Contactpersoon>();
+            Parallel.ForEach(ds, card => {
+                lock (resultSet) {
+                    resultSet.Add(GetModel(card));
+                }
+            });
+            return resultSet;
+        }
+
+
+#After
+
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Asterix.Framework.Data.LcDomain;
+using Asterix.Framework.Data.Interfaces;
+using Asterix.Framework.Data.Models.Debiteuren;
+using Asterix.Framework.Definitions;
+using Asterix.Framework.Foundation;
+
+namespace Asterix.Framework.Data.Repository.Debiteuren
+{
+    public class ContactpersoonRepository : IAsterixRepository<Contactpersoon>
+    {
+        private readonly string _database;
+
+        public ContactpersoonRepository(RuntimeParameters parms) {
+            _database = parms.Database;
+        }
+
+        public Contactpersoon Add(Contactpersoon model) {
+            var dc = new LcAsterixDataContext(_database);
+            var newCard = new AsterixKlantenContactpersonen();
+            newCard.CpKlantzoekcode = model.Klantnummer;
+            newCard.CpAchternaam = model.Achternaam;
+            newCard.CpVoorletters = model.Voorletters;
+            newCard.CpVoornaam = model.Voornaam;
+            newCard.CpEmail = model.Email;
+            newCard.CpFunctie = model.Functie;
+            newCard.CpTelefoon1 = model.Telefoon;
+            newCard.CpTelefoon2 = model.Telefoon2;
+            newCard.CpGeslacht = model.Geslacht;
+            newCard.CpIshoofdcontact = model.IsHoofdcontact;
+            ObjectFactory.SetDefaultFieldValues(newCard);
+            dc.AsterixKlantenContactpersonen.InsertOnSubmit(newCard);
+            dc.SubmitChanges();
+            model.Id = newCard.Id;
+            return model;
+        }
+
+        public void Delete(int id) {
+            var dc = new LcAsterixDataContext(_database);
+            var del = dc.AsterixKlantenContactpersonen.Single(x => x.Id == id);
+            dc.AsterixKlantenContactpersonen.DeleteOnSubmit(del);
+            dc.SubmitChanges();
+        }
+
+        public List<Contactpersoon> FullTextSearch(string filter) {
+            filter = filter.Trim().ToLower();
+            var filterDate = Helpers.GetFilterDate(filter);
+            var dc = new LcAsterixDataContext(_database);
+            var ds = dc.AsterixKlantenContactpersonen.Where(x => x.Id.ToString() == filter
+                                                                   || x.CpKlantzoekcode.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpAchternaam.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpVoorletters.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpVoornaam.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpEmail.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpFunctie.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpTelefoon1.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpTelefoon2.ToLower().IndexOf(filter) != -1
+                                                                   || x.CpGeslacht.ToLower().IndexOf(filter) != -1
+            );
+            var resultSet = new List<Contactpersoon>();
+            Parallel.ForEach(ds, card => {
+                lock (resultSet) {
+                    resultSet.Add(GetModel(card));
+                }
+            });
+            return resultSet;
+        }
+

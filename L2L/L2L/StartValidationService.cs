@@ -24,7 +24,7 @@ namespace L2L
                 return "file not found";
             }
 
-            if(Path.GetExtension(_args[0]) != "cs") {
+            if(Path.GetExtension(_args[0]) != ".cs") {
                 return "invalid file type";
             }
 
