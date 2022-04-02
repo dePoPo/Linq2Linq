@@ -38,11 +38,14 @@ As said at the top, this is not a ready made converter for all cases, but who kn
 
 # Example
 
-# Before
+Example of a partial repository file before and after conversion.
+
+# Before conversion
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Asterix.Framework.Data.LcDomain;
+using Asterix.Framework.Data.Domain;
 using Asterix.Framework.Data.Interfaces;
 using Asterix.Framework.Data.Models.Debiteuren;
 using Asterix.Framework.Definitions;
@@ -59,7 +62,7 @@ namespace Asterix.Framework.Data.Repository.Debiteuren
         }
 
         public Contactpersoon Add(Contactpersoon model) {
-            var dc = new LcAsterixDataContext(_database);
+            var dc = new AsterixDataContext(_database);
             var newCard = new Asterix_klanten_Contactpersonen();
             newCard.Cp_klantzoekcode = model.Klantnummer;
             newCard.Cp_achternaam = model.Achternaam;
@@ -79,7 +82,7 @@ namespace Asterix.Framework.Data.Repository.Debiteuren
         }
 
         public void Delete(int id) {
-            var dc = new LcAsterixDataContext(_database);
+            var dc = new AsterixDataContext(_database);
             var del = dc.Asterix_klanten_Contactpersonen.Single(x => x.Id == id);
             dc.Asterix_klanten_Contactpersonen.DeleteOnSubmit(del);
             dc.SubmitChanges();
@@ -88,7 +91,7 @@ namespace Asterix.Framework.Data.Repository.Debiteuren
         public List<Contactpersoon> FullTextSearch(string filter) {
             filter = filter.Trim().ToLower();
             var filterDate = Helpers.GetFilterDate(filter);
-            var dc = new LcAsterixDataContext(_database);
+            var dc = new AsterixDataContext(_database);
             var ds = dc.Asterix_klanten_Contactpersonen.Where(x => x.Id.ToString() == filter
                                                                    || x.Cp_klantzoekcode.ToLower().IndexOf(filter) != -1
                                                                    || x.Cp_achternaam.ToLower().IndexOf(filter) != -1
@@ -110,7 +113,8 @@ namespace Asterix.Framework.Data.Repository.Debiteuren
         }
 
 
-#After
+
+#After conversion
 
 
 using System.Collections.Generic;
