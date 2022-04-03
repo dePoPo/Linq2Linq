@@ -129,7 +129,7 @@ namespace L2L
         }
 
         /// <summary>
-        /// Second pass table names
+        /// Second pass table names. 
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
@@ -151,6 +151,9 @@ namespace L2L
         /// <summary>
         /// Second pass field names, capitalize sql field names to get to teh linq field
         /// names, and normalize() for the LinqConnect names
+        /// formats:
+        /// ".[fieldname] " 
+        /// " [Fieldname] ="
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
@@ -158,8 +161,8 @@ namespace L2L
             string value = buffer;
             foreach (string field in _fieldNames) {
                 Dictionary<string, string> replacements = new Dictionary<string, string>();
-                replacements.Add($".{Helpers.Capitalize(field)}", $".{Helpers.Normalize(field)}");
-                replacements.Add($"{Helpers.Capitalize(field)} =", $"{Helpers.Normalize(field)} =");
+                replacements.Add($".{Helpers.Capitalize(field)} ", $".{Helpers.Normalize(field)} ");
+                replacements.Add($" {Helpers.Capitalize(field)} =", $" {Helpers.Normalize(field)} =");
                 foreach (var item in replacements) {
                     string find = item.Key;
                     string replace = item.Value;
