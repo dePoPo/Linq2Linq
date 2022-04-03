@@ -44,7 +44,9 @@ namespace L2L.Models
             NamespaceUpdates = new Dictionary<string, string>();
             NamespaceUpdates.Add("using Asterix.Framework.Data.Domain;", "using Asterix.Framework.Data.LcDomain;");
             TableDetectionContextAccess = "dc.";
-            ConnectionString = System.IO.File.ReadAllText(@"C:\Users\bno.CORP\OneDrive\Git\Linq2Linq\connectionstring.secret");
+            string homepath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string configpath = $@"{homepath}\Linq2Linq";
+            ConnectionString = System.IO.File.ReadAllText($@"{configpath}\connectionstring.secret");
         }
 
         

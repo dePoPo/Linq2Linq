@@ -42,7 +42,7 @@ namespace L2L
                 string buffer = reader.ReadLine();
                 buffer = UpdateDataContext(buffer);
                 buffer = UpdateNameSpaces(buffer);
-                
+
                 // update query access, and build a list of used tables and fields
                 buffer = UpdateQueryStart(buffer);
 
@@ -64,16 +64,20 @@ namespace L2L
                 buffer = UpdateFields(buffer);
 
                 writer2.WriteLine(buffer);
-                Console.WriteLine(buffer);
+
             }
             reader2.Close();
             writer2.Close();
         }
 
         public string UpdateDataContext(string buffer) {
-            string find = $"new {_config.SourceDataContextName}(";
-            string replace = $"new {_config.TargetDataContextName}(";
-            string value = buffer.Replace(find, replace);
+            string value = buffer;
+            Dictionary<string, string> replacements = new Dictionary<string, string>();
+            replacements.Add($"new {_config.SourceDataContextName}(", $"new {_config.TargetDataContextName}(");
+            replacements.Add($" {_config.SourceDataContextName} ", $" {_config.TargetDataContextName} ");
+            foreach (var item in replacements) {
+                value = value.Replace(item.Key, item.Value);
+            }
             return value;
         }
 
@@ -94,8 +98,8 @@ namespace L2L
             }
 
             // table name will start at the found location, and continue to the next .
-            // like dc.Asterix_klanten_Contactpersonen.Single(x => x.Id == id); from which we need
-            // Asterix_klanten_Contactpersonen
+            // like dc.Some_Table_Name.Single(x => x.Id == id); from which we need
+            // Some_Table_Name
             int startindex = buffer.IndexOf(_config.TableDetectionContextAccess) + _config.TableDetectionContextAccess.Length;
             string remainder = value.Substring(startindex);
             int nextdot = remainder.IndexOf(".");
@@ -109,13 +113,17 @@ namespace L2L
 
             // now that we are aware of the table, we store it's name to update things that dont need
             // the context such as new some_thing(); during a late pass
-            _tableNames.Add(tablename);
+            if (!_tableNames.Contains(tablename)) {
+                _tableNames.Add(tablename);
+            }
 
             // get the names of the fields in this table, so we can update getters and setters for
             // the data objects fields in a later pass
             var fieldnames = Helpers.GetColumnsInTable(_config.ConnectionString, tablename);
             foreach (string field in fieldnames) {
-                _fieldNames.Add(field);
+                if (!_fieldNames.Contains(field)) {
+                    _fieldNames.Add(field);
+                }
             }
             return value;
         }
@@ -132,6 +140,10 @@ namespace L2L
                     string targetname = Helpers.Normalize(tablename);
                     value = value.Replace(tablename, targetname);
                 }
+                if (value.Contains(Helpers.Capitalize(tablename))) {
+                    string targetname = Helpers.Normalize(tablename);
+                    value = value.Replace(tablename, targetname);
+                }
             }
             return value;
         }
@@ -144,18 +156,19 @@ namespace L2L
         /// <returns></returns>
         public string UpdateFields(string buffer) {
             string value = buffer;
-            foreach(string field in _fieldNames) {
-                string find = $".{Helpers.Capitalize(field)}";
-                string replace = $".{Helpers.Normalize(field)}";
-                if (buffer.Contains(find)) {
-                    value = value.Replace(find, replace);
+            foreach (string field in _fieldNames) {
+                Dictionary<string, string> replacements = new Dictionary<string, string>();
+                replacements.Add($".{Helpers.Capitalize(field)}", $".{Helpers.Normalize(field)}");
+                replacements.Add($"{Helpers.Capitalize(field)} =", $"{Helpers.Normalize(field)} =");
+                foreach (var item in replacements) {
+                    string find = item.Key;
+                    string replace = item.Value;
+                    if (buffer.Contains(find)) {
+                        value = value.Replace(find, replace);
+                    }
                 }
             }
             return value;
         }
-
-
-
-
     }
 }
