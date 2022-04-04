@@ -25,6 +25,7 @@ namespace L2L
         private ConfigurationModel _config;
         private List<string> _fieldNames;
         private List<string> _tableNames;
+        private ConsoleColor _foreground;
 
         public FileConverter(string sourcefile, string targetfile, ConfigurationModel model) {
             _sourcefile = sourcefile;
@@ -32,6 +33,7 @@ namespace L2L
             _config = model;
             _fieldNames = new List<string>();
             _tableNames = new List<string>();
+            _foreground = Console.ForegroundColor;
         }
 
         public void Process() {
@@ -89,43 +91,36 @@ namespace L2L
             return value;
         }
 
-
         public string UpdateQueryStart(string buffer) {
             string value = buffer;
-
-            if (!buffer.Contains(_config.TableDetectionContextAccess)) {
+            if (!buffer.Contains(_config.TableAccessDetection)) {
                 return value;
             }
-
-            // table name will start at the found location, and continue to the next .
-            // like dc.Some_Table_Name.Single(x => x.Id == id); from which we need
-            // Some_Table_Name
-            int startindex = buffer.IndexOf(_config.TableDetectionContextAccess) + _config.TableDetectionContextAccess.Length;
+            int startindex = buffer.IndexOf(_config.TableAccessDetection) + _config.TableAccessDetection.Length;
             string remainder = value.Substring(startindex);
-            int nextdot = remainder.IndexOf(".");
-            if (nextdot == -1) {
-                // this is something like .SubmitChanges()
-                return value;
-            }
-            string tablename = remainder.Substring(0, nextdot);
+            string tablename = GetWord(remainder);
             string newname = Helpers.Normalize(tablename);
+            AddTable(tablename);
             value = buffer.Replace(tablename, newname);
+            return value;
+        }
 
-            // now that we are aware of the table, we store it's name to update things that dont need
-            // the context such as new some_thing(); during a late pass
+        private void AddTable(string tablename) {
             if (!_tableNames.Contains(tablename)) {
                 _tableNames.Add(tablename);
-            }
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"+{tablename}");
+                Console.ForegroundColor = _foreground;
 
-            // get the names of the fields in this table, so we can update getters and setters for
-            // the data objects fields in a later pass
-            var fieldnames = Helpers.GetColumnsInTable(_config.ConnectionString, tablename);
-            foreach (string field in fieldnames) {
-                if (!_fieldNames.Contains(field)) {
-                    _fieldNames.Add(field);
+                // get the names of the fields in this table, so we can update getters and setters for
+                // the data objects fields in a later pass
+                var fieldnames = Helpers.GetColumnsInTable(_config.ConnectionString, tablename);
+                foreach (string field in fieldnames) {
+                    if (!_fieldNames.Contains(field)) {
+                        _fieldNames.Add(field);
+                    }
                 }
             }
-            return value;
         }
 
         /// <summary>
@@ -149,11 +144,30 @@ namespace L2L
         }
 
         /// <summary>
-        /// Second pass field names, capitalize sql field names to get to teh linq field
+        /// Get the next word or term following the datacontext access detection,
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private string GetWord(string value) {
+            string[] enders = new string[] { " ", ";", ".", "(" };
+            int cutOff = value.Length;
+            foreach(string s in enders) {
+                int marker = value.IndexOf(s);
+                if (marker != -1 && marker < cutOff) {
+                    cutOff = marker;
+                }
+            }
+            return value.Substring(0, cutOff);
+        }
+
+
+        /// <summary>
+        /// Second pass field names, capitalize sql field names to get to the linq field
         /// names, and normalize() for the LinqConnect names
         /// formats:
         /// ".[fieldname] " 
         /// " [Fieldname] ="
+        /// etc etc. 
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
@@ -162,6 +176,10 @@ namespace L2L
             foreach (string field in _fieldNames) {
                 Dictionary<string, string> replacements = new Dictionary<string, string>();
                 replacements.Add($".{Helpers.Capitalize(field)} ", $".{Helpers.Normalize(field)} ");
+                replacements.Add($".{Helpers.Capitalize(field)},", $".{Helpers.Normalize(field)},");
+                replacements.Add($".{Helpers.Capitalize(field)};", $".{Helpers.Normalize(field)};");
+                replacements.Add($".{Helpers.Capitalize(field)}.", $".{Helpers.Normalize(field)}.");
+                replacements.Add($".{Helpers.Capitalize(field)})", $".{Helpers.Normalize(field)})");
                 replacements.Add($" {Helpers.Capitalize(field)} =", $" {Helpers.Normalize(field)} =");
                 foreach (var item in replacements) {
                     string find = item.Key;

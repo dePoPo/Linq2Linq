@@ -4,12 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace L2L
 {
     internal class Program
     {
         static void Main(string[] args) {
+
+            Console.WriteLine($"build {Assembly.GetEntryAssembly().GetName().Version}");
 
             StartValidationService startValidationService = new StartValidationService(args);
             string result = startValidationService.Validate();

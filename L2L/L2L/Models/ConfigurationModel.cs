@@ -36,14 +36,14 @@ namespace L2L.Models
         /// <summary>
         /// Variable used to access datacontext objects, which will be followed by tablenames
         /// </summary>
-        public string TableDetectionContextAccess { get; set; }
+        public string TableAccessDetection { get; set; }
 
         public ConfigurationModel() {
             SourceDataContextName = "AsterixDataContext";
             TargetDataContextName = "LcAsterixDataContext";
             NamespaceUpdates = new Dictionary<string, string>();
             NamespaceUpdates.Add("using Asterix.Framework.Data.Domain;", "using Asterix.Framework.Data.LcDomain;");
-            TableDetectionContextAccess = "dc.";
+            TableAccessDetection = "dc.";
             string homepath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string configpath = $@"{homepath}\Linq2Linq";
             ConnectionString = System.IO.File.ReadAllText($@"{configpath}\connectionstring.secret");
