@@ -1,9 +1,10 @@
-# Unfinished work in progress
+
 
 # Linq2Linq
 Convert Linq2Sql to DevArt LinqConnect for a large codebase
 
 This is not for generic use, this is offered to you as an example of how you could approach automatic conversion vs. manual updating.
+In it's barest essence, this is a targetted search and replace on steroids.
 
 # Background
 Having a 5M+ lines codebase with Linq2Sql makes it hard to move. That codebase having a 15 year historie as a production project in a changing environment starting out as VB6, moving to VB.NET and since the last 10 years C# does not make it a lot easyer. And at some point converting that huge bunch of webforms and winforms to .net core (or 'just' .net as the name of the day is)  will be a major challenge.
