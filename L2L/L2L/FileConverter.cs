@@ -64,6 +64,7 @@ namespace L2L
                 // now we are aware of tables, we can update them in constructors etc.
                 buffer = UpdateTables(buffer);
                 buffer = UpdateFields(buffer);
+                buffer = UpdateLinqSyntax(buffer);
 
                 writer2.WriteLine(buffer);
 
@@ -161,6 +162,36 @@ namespace L2L
         }
 
 
+        
+        /// <summary>
+        /// Style preferences on some selectors that occur with or withhout ; at the line ending
+        /// We prefer casting ToList() as much as possible because ms linq2sql is much more
+        /// forgiving in regards to MARS then devart's implementation when accessing a context with nested loops.
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public string UpdateLinqSyntax(string buffer) {
+            string value = buffer.TrimEnd();
+            Dictionary<string, string> findreplace = new Dictionary<string, string>();
+            findreplace.Add(".Select(x => x)", ".ToList()");
+            findreplace.Add(".Select(x => x);", ".ToList();");
+            findreplace.Add(".Select(x => x).ToList()", ".ToList()");
+            findreplace.Add(".Select(x => x).ToList();", ".ToList();");
+            findreplace.Add(".Select(x => x).Count()", ".Count()");
+            findreplace.Add(".Select(x => x).Count();", ".Count();");
+            findreplace.Add(".Select(x => x).Any()", ".Any()");
+            findreplace.Add(".Select(x => x).Any();", ".Any();");
+
+            foreach (var item in findreplace) {
+                if (value.EndsWith(item.Key)) {
+                    value = value.Replace(item.Key, item.Value);
+                }
+            }
+
+            return value;
+        }
+
+
         /// <summary>
         /// Second pass field names, capitalize sql field names to get to the linq field
         /// names, and normalize() for the LinqConnect names
@@ -174,6 +205,8 @@ namespace L2L
         public string UpdateFields(string buffer) {
             string value = buffer;
             foreach (string field in _fieldNames) {
+
+                // update various field notations
                 Dictionary<string, string> replacements = new Dictionary<string, string>();
                 replacements.Add($".{Helpers.Capitalize(field)} ", $".{Helpers.Normalize(field)} ");
                 replacements.Add($".{Helpers.Capitalize(field)},", $".{Helpers.Normalize(field)},");
@@ -184,10 +217,17 @@ namespace L2L
                 foreach (var item in replacements) {
                     string find = item.Key;
                     string replace = item.Value;
-                    if (buffer.Contains(find)) {
+                    if (value.Contains(find)) {
                         value = value.Replace(find, replace);
                     }
                 }
+
+                // end of line occurance of field name
+                if (value.EndsWith("." + Helpers.Capitalize(field))) {
+                    value = value.Replace($".{Helpers.Capitalize(field)}", $".{Helpers.Normalize(field)}");
+                }
+
+
             }
             return value;
         }
